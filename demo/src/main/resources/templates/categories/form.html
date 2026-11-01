@@ -1,0 +1,6 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title th:text="${title}">Danh mục</title><link rel="stylesheet" th:href="@{/style.css}"></head><body>
+<header><strong>Shop Management</strong><nav><a th:href="@{/products}">Sản phẩm</a><a th:href="@{/categories}">Danh mục</a></nav></header>
+<main><h1 th:text="${title}"></h1><form class="card" method="post" th:action="${action}" th:object="${categoryForm}">
+<div class="field"><label for="name">Tên danh mục</label><input id="name" th:field="*{name}" required maxlength="255"><span class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span></div>
+<div class="field"><label for="description">Mô tả</label><textarea id="description" th:field="*{description}" rows="4"></textarea></div>
+<button type="submit">Lưu</button> <a class="button secondary" th:href="@{/categories}">Hủy</a></form></main></body></html>

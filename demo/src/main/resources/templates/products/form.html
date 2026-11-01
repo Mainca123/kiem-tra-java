@@ -1,0 +1,8 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title th:text="${title}">Sản phẩm</title><link rel="stylesheet" th:href="@{/style.css}"></head><body>
+<header><strong>Shop Management</strong><nav><a th:href="@{/products}">Sản phẩm</a><a th:href="@{/categories}">Danh mục</a></nav></header>
+<main><h1 th:text="${title}"></h1><form class="card" method="post" th:action="${action}" th:object="${productForm}">
+<div class="field"><label for="name">Tên sản phẩm</label><input id="name" th:field="*{name}" required maxlength="255"><span class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span></div>
+<div class="field"><label for="price">Giá</label><input id="price" type="number" step="0.01" min="0.01" th:field="*{price}" required><span class="error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></span></div>
+<div class="field"><label for="stock">Tồn kho</label><input id="stock" type="number" min="0" th:field="*{stock}" required><span class="error" th:if="${#fields.hasErrors('stock')}" th:errors="*{stock}"></span></div>
+<div class="field"><label for="categoryId">Danh mục</label><select id="categoryId" th:field="*{categoryId}" required><option value="">-- Chọn danh mục --</option><option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}"></option></select><span class="error" th:if="${#fields.hasErrors('categoryId')}" th:errors="*{categoryId}"></span></div>
+<button type="submit">Lưu</button> <a class="button secondary" th:href="@{/products}">Hủy</a></form></main></body></html>

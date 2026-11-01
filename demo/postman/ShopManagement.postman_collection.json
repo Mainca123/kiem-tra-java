@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "Shop Management TX1",
+    "description": "Chạy các request theo thứ tự để kiểm thử CRUD và metrics. Đổi baseUrl nếu Docker Compose dùng cổng khác.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "categoryId", "value": "" },
+    { "key": "productId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 Create category",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Electronics\",\"description\":\"Postman test\"}" }, "url": "{{baseUrl}}/api/categories" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));", "pm.collectionVariables.set('categoryId', pm.response.json().id);"] } }]
+    },
+    {
+      "name": "02 Create product",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Laptop TX1\",\"price\":1200,\"stock\":5,\"categoryId\":{{categoryId}}}" }, "url": "{{baseUrl}}/api/products" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('201 Created', () => pm.response.to.have.status(201));", "pm.test('Category is linked', () => pm.expect(pm.response.json().categoryName).to.eql('Electronics'));", "pm.collectionVariables.set('productId', pm.response.json().id);"] } }]
+    },
+    {
+      "name": "03 Search and filter",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/products?name=laptop&categoryId={{categoryId}}&page=0&size=10" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "pm.test('Product found', () => pm.expect(pm.response.json().totalElements).to.be.above(0));"] } }]
+    },
+    {
+      "name": "04 Update product",
+      "request": { "method": "PUT", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"Laptop TX1 Plus\",\"price\":1500,\"stock\":4,\"categoryId\":{{categoryId}}}" }, "url": "{{baseUrl}}/api/products/{{productId}}" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "pm.test('Stock updated', () => pm.expect(pm.response.json().stock).to.eql(4));"] } }]
+    },
+    {
+      "name": "05 Reject invalid product",
+      "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\"name\":\"\",\"price\":0,\"stock\":-1,\"categoryId\":{{categoryId}}}" }, "url": "{{baseUrl}}/api/products" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('400 Bad Request', () => pm.response.to.have.status(400));", "pm.test('Field errors returned', () => pm.expect(pm.response.json().fields).to.have.all.keys('name', 'price', 'stock'));"] } }]
+    },
+    {
+      "name": "06 Prometheus metrics",
+      "request": { "method": "GET", "url": "{{baseUrl}}/actuator/prometheus" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('200 OK', () => pm.response.to.have.status(200));", "pm.test('JVM metrics present', () => pm.expect(pm.response.text()).to.include('jvm_memory_used_bytes'));"] } }]
+    },
+    {
+      "name": "07 Delete product",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/api/products/{{productId}}" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('204 No Content', () => pm.response.to.have.status(204));"] } }]
+    },
+    {
+      "name": "08 Delete category",
+      "request": { "method": "DELETE", "url": "{{baseUrl}}/api/categories/{{categoryId}}" },
+      "event": [{ "listen": "test", "script": { "exec": ["pm.test('204 No Content', () => pm.response.to.have.status(204));"] } }]
+    }
+  ]
+}

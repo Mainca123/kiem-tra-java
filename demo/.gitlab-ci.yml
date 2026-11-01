@@ -1,0 +1,57 @@
+stages:
+  - build
+  - test
+  - package
+  - dockerize
+  - deploy
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository/
+
+default:
+  tags:
+    - minikube
+
+build_job:
+  stage: build
+  script:
+    - mvn -B clean compile
+
+test_job:
+  stage: test
+  script:
+    - mvn -B test
+
+package_job:
+  stage: package
+  script:
+    - mvn -B package -DskipTests
+  artifacts:
+    paths:
+      - target/shop-management-0.0.1-SNAPSHOT.jar
+
+dockerize_job:
+  stage: dockerize
+  dependencies:
+    - package_job
+  script:
+    - docker build -t shop-management-app:latest .
+
+deploy_to_minikube:
+  stage: deploy
+  only:
+    - main
+  dependencies:
+    - package_job
+  script:
+    - docker build -t shop-management-app:latest .
+    - minikube image load shop-management-app:latest
+    - kubectl apply -f k8s/mysql-deployment.yml
+    - kubectl rollout status deployment/mysql --timeout=180s
+    - kubectl apply -f k8s/app-deployment.yml
+    - kubectl rollout restart deployment/shop-app
+    - kubectl rollout status deployment/shop-app --timeout=180s
